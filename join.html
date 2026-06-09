@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Joining the jam...</title>
+<script src="config.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  html,body { height:100%; margin:0; }
+  body {
+    display:flex; align-items:center; justify-content:center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background:#0e0e12; color:#e8e8ef;
+    background-image: radial-gradient(circle at 50% 0%, #1c1c2b 0%, #0e0e12 60%);
+  }
+  .card { text-align:center; padding:2rem; max-width:34rem; }
+  h1 { font-size:1.5rem; margin:.6rem 0 .3rem; }
+  p { color:#a9a9c2; line-height:1.5; }
+  .spinner {
+    width:44px; height:44px; margin:0 auto 1.2rem;
+    border:4px solid #2a2a40; border-top-color:#7c5cff; border-radius:50%;
+    animation:spin .9s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  a { color:#9b8bff; }
+  .manual { margin-top:1.2rem; font-size:.85rem; word-break:break-all; }
+  #detail { font-size:.8rem; color:#6f6f8c; margin-top:.4rem; min-height:1.1em; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h1 id="title">Finding you a session...</h1>
+    <p id="msg">Checking which room has space - you'll join the fullest one that isn't full yet.</p>
+    <p id="detail"></p>
+    <p id="manual" class="manual" style="display:none"></p>
+  </div>
+
+<script type="module">
+  import { Y, WebsocketProvider } from './vendor-yjs.js';
+
+  const W = window.WORKSHOP;
+  const detail = document.getElementById('detail');
+
+  // Connect read-only to one room's Flok presence and count real users.
+  // We set our own awareness to null so we never show up as a participant,
+  // and we only count states that carry a `user` field (real editors do).
+  function countRoom(room, timeoutMs) {
+    return new Promise((resolve) => {
+      let settled = false, provider = null, doc = null;
+      const finish = () => {
+        if (settled) return; settled = true;
+        let n = 0;
+        try {
+          provider.awareness.getStates().forEach((st, id) => {
+            if (id !== doc.clientID && st && st.user) n++;
+          });
+        } catch (e) {}
+        try { provider.disconnect(); } catch (e) {}
+        try { provider.destroy(); } catch (e) {}
+        try { doc.destroy(); } catch (e) {}
+        resolve(n);
+      };
+      try {
+        doc = new Y.Doc();
+        provider = new WebsocketProvider(W.wsDocUrl(), room, doc, { connect: true, disableBc: true });
+        provider.awareness.setLocalState(null);
+        // The server sends current awareness right after sync; read shortly after.
+        provider.on('sync', () => setTimeout(finish, 300));
+      } catch (e) { resolve(0); return; }
+      setTimeout(finish, timeoutMs); // hard cap in case 'sync' never fires
+    });
+  }
+
+  function redirect(sessionName) {
+    const url = W.flokLink(sessionName);
+    const m = document.getElementById('manual');
+    m.style.display = 'block';
+    m.innerHTML = 'If nothing happens, <a href="' + url + '">click here to join</a>.';
+    location.replace(url);
+  }
+
+  (async function () {
+    let idx = 0;
+    try {
+      const rooms = [];
+      for (let i = 0; i < W.MAX_ROOMS; i++) rooms.push(W.SESSION_PREFIX + i);
+      const counts = await Promise.all(rooms.map((r) => countRoom(r, W.PROBE_MS)));
+      idx = W.chooseRoomIndex(counts, W.MAX_PER_SESSION);
+      const here = counts[idx] || 0;
+      detail.textContent = 'Room ' + (idx + 1) + ' - ' + here + ' of ' + W.MAX_PER_SESSION + ' seats taken.';
+    } catch (e) {
+      // Never block the workshop: if presence can't be read, use room 1.
+      idx = 0;
+      document.getElementById('msg').textContent =
+        "Couldn't read live room counts, so I'm sending you to the first room.";
+    }
+    setTimeout(() => redirect(W.SESSION_PREFIX + idx), 250);
+  })();
+</script>
+</body>
+</html>

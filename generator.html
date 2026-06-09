@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strudel link maker</title>
+<script src="config.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:2rem 1.2rem 4rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background:#0e0e12; color:#e8e8ef;
+    background-image: radial-gradient(circle at 50% -10%, #1d1d2e 0%, #0e0e12 55%); }
+  .wrap { max-width:46rem; margin:0 auto; }
+  h1 { font-size:1.5rem; margin:.2rem 0; }
+  p.sub { color:#a9a9c2; margin-top:.2rem; }
+  a { color:#9b8bff; }
+  label { display:block; margin:1.4rem 0 .4rem; color:#cfcfe6; font-size:.9rem; }
+  textarea { width:100%; min-height:9rem; resize:vertical;
+    background:#0c0c13; color:#bdbdf0; border:1px solid #2a2a40; border-radius:10px;
+    padding:.8rem; font:inherit; font-size:.85rem; line-height:1.5; }
+  .out { margin-top:1rem; background:#16161f; border:1px solid #26263a; border-radius:12px; padding:1rem; }
+  .url { word-break:break-all; background:#0c0c13; border:1px solid #232335; border-radius:9px;
+    padding:.6rem .7rem; font-size:.78rem; color:#9b8bff; }
+  .row { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.7rem; }
+  a.btn, button.btn { display:inline-flex; align-items:center; cursor:pointer; font:inherit;
+    font-size:.82rem; text-decoration:none; padding:.5rem .9rem; border-radius:9px;
+    border:1px solid #3a3a5c; background:#23233a; color:#e8e8ef; }
+  a.btn.play { background:#7c5cff; border-color:#7c5cff; color:#fff; font-weight:600; }
+  a.btn:hover, button.btn:hover { filter:brightness(1.15); }
+  .toast { position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%);
+    background:#7c5cff; color:#fff; padding:.55rem 1rem; border-radius:9px;
+    font-size:.85rem; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  hr { border:none; border-top:1px solid #26263a; margin:2.4rem 0 0; }
+  small { color:#7d7d99; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Strudel link maker</h1>
+  <p class="sub"><a href="index.html">&larr; back to the hub</a> &nbsp;|&nbsp; Paste code, get a self-contained strudel.cc link.</p>
+
+  <label for="code">Strudel code</label>
+  <textarea id="code" spellcheck="false">setcpm(120/4)
+stack(
+  sound("bd*2 ~ sd ~").bank("RolandTR909"),
+  note("c2 ~ c2 g1").sound("sawtooth").lpf(700)
+)</textarea>
+
+  <div class="out">
+    <div class="url" id="url"></div>
+    <div class="row">
+      <a class="btn play" id="open" target="_blank">Open + play</a>
+      <button class="btn" id="copy">Copy link</button>
+    </div>
+    <p style="margin:.7rem 0 0"><small id="len"></small></p>
+  </div>
+
+  <hr>
+  <p style="margin-top:1.2rem"><small>Your configured Flok jam link (4 Strudel + 1 Hydra, 5-per-room):</small></p>
+  <div class="url" id="flok"></div>
+  <p><small>This is what <code>join.html</code> redirects to (with the room number filled in).</small></p>
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+  var W = window.WORKSHOP;
+  var ta = document.getElementById("code");
+  var urlEl = document.getElementById("url");
+  var openEl = document.getElementById("open");
+  var lenEl = document.getElementById("len");
+
+  function update() {
+    var link = W.strudelLink(ta.value);
+    urlEl.textContent = link;
+    openEl.href = link;
+    lenEl.textContent = "Link length: " + link.length + " characters"
+      + (link.length > 2000 ? "  (very long - most browsers are fine up to ~8000)" : "");
+  }
+  ta.addEventListener("input", update);
+  update();
+
+  // Show the example Flok session link (room 0).
+  document.getElementById("flok").textContent = W.flokLink(W.SESSION_PREFIX + "0");
+
+  document.getElementById("copy").onclick = function () {
+    var t = urlEl.textContent;
+    navigator.clipboard.writeText(t).then(showToast, function () {
+      var tmp = document.createElement("textarea"); tmp.value = t;
+      document.body.appendChild(tmp); tmp.select();
+      try { document.execCommand("copy"); showToast(); } finally { tmp.remove(); }
+    });
+  };
+  var timer;
+  function showToast() {
+    var el = document.getElementById("toast"); el.classList.add("show");
+    clearTimeout(timer); timer = setTimeout(function(){ el.classList.remove("show"); }, 1300);
+  }
+</script>
+</body>
+</html>
