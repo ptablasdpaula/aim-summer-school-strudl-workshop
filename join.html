@@ -54,7 +54,11 @@
         let n = 0;
         try {
           provider.awareness.getStates().forEach((st, id) => {
-            if (id !== doc.clientID && st && st.user) n++;
+            // Count real editors only; ignore ourselves and any organiser
+            // "Oversee jams" viewer (it joins with W.ORGANISER_NAME so it
+            // never takes up one of the room's seats).
+            if (id !== doc.clientID && st && st.user &&
+                st.user.name !== W.ORGANISER_NAME) n++;
           });
         } catch (e) {}
         try { provider.disconnect(); } catch (e) {}
@@ -73,8 +77,8 @@
     });
   }
 
-  function redirect(sessionName) {
-    const url = W.flokLink(sessionName);
+  function redirect(sessionName, roomIndex) {
+    const url = W.flokLink(sessionName, roomIndex);
     const m = document.getElementById('manual');
     m.style.display = 'block';
     m.innerHTML = 'If nothing happens, <a href="' + url + '">click here to join</a>.';
@@ -96,7 +100,7 @@
       document.getElementById('msg').textContent =
         "Couldn't read live room counts, so I'm sending you to the first room.";
     }
-    setTimeout(() => redirect(W.SESSION_PREFIX + idx), 250);
+    setTimeout(() => redirect(W.SESSION_PREFIX + idx, idx), 250);
   })();
 </script>
 </body>

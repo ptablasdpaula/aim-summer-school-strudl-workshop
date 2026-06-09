@@ -1,16 +1,29 @@
 # Live-coding workshop kit
 
-Two things, ready for a workshop:
+Two sides, one static site:
 
-1. **Solo Strudel links** - self-contained `strudel.cc` links that open with your
-   code already in the editor. No server, no database; the code rides in the link.
+- **Main page (`index.html`)** - what participants see. A **Slides** link, the
+  numbered **warm-up patterns** (`#1`, `#2`, ... - each opens a self-contained
+  `strudel.cc` link), and one big **Join the live jam** button.
+- **Organisers console (`organisers.html`)** - a private, unlinked page (nothing on
+  the main page hints it exists) where you upload the slides PDF, edit the warm-up
+  patterns, and oversee the live jams.
+
+Under the hood, two things:
+
+1. **Solo Strudel links** - self-contained `strudel.cc` links that open with the
+   code already in the editor. No server; the code rides in the link.
 2. **A Flok "jam" link** - one link you share that drops each person into a shared
    room of **up to 5 people**, always filling the fullest room that still has a
    seat. When a room fills, the next click starts a new room - **and if someone
-   leaves a room, their seat frees up and the next person refills it.**
+   leaves a room, their seat frees up and the next person refills it.** Each new
+   room also opens with a **different Hydra visual** (rotated from the
+   `hydra.ojack.xyz` gallery).
 
 Everything is static. **It hosts entirely on GitHub Pages - no backend, no
-accounts, nothing else to deploy.**
+accounts, nothing else to deploy.** The organiser console saves changes by
+committing to this repo through the **GitHub API** (you paste a token once), so
+edits show up for every participant without any server.
 
 ---
 
@@ -39,12 +52,14 @@ its own presence to null and only counts entries that carry a real user).
 
 | File | What it is |
 |------|------------|
-| `index.html` | The hub: warm-up Strudel buttons + the big "Join the jam" button. |
+| `index.html` | **Main page** participants see: Slides link, numbered warm-up patterns (Open only), and the "Join the live jam" button. Builds itself from `data.json`. |
+| `organisers.html` | **Organisers console** (unlinked/private): paste a GitHub token, upload the Slides PDF, edit/reorder/add/delete warm-up patterns, and oversee live jams. |
 | `join.html` | The router. Reads live room occupancy and redirects to the fullest room with space. **This is the link you share for the group jam.** |
-| `generator.html` | Paste any Strudel code, get a shareable link. For making more links later. |
-| `config.js` | **The one file you edit.** Room naming, pane starter code, and the warm-up patterns. |
+| `generator.html` | Paste any Strudel code, get a shareable link. Linked from the organiser console. |
+| `config.js` | Static config: room naming, pane starter code, the GitHub repo target, and `HYDRA_SKETCHES` (the rotating visuals). |
+| `data.json` | **Organiser-editable content**: the Slides PDF path + the warm-up patterns. The organiser console rewrites it via the GitHub API; `index.html` reads it. |
+| `slides.pdf` | The uploaded slides (created/overwritten by the organiser console). |
 | `vendor-yjs.js` | Bundled `yjs` + `y-websocket` (~100 KB) used to read Flok presence. No CDN at runtime; ship it as-is. |
-| `counter.ts` | Deprecated - left over from the old counter approach, not used anymore. Safe to delete. |
 
 ---
 
@@ -64,10 +79,29 @@ That's it - no counter to deploy this time.
 
 ## What to share
 
-- **Hub (everything):** `https://<you>.github.io/<repo>/`
+- **Main page (give this to participants):** `https://<you>.github.io/<repo>/`
 - **Jam only (the magic link):** `https://<you>.github.io/<repo>/join.html`
-- **Solo Strudel links:** open the hub and hit "Copy link" on any pattern, or use
-  `generator.html`. Each is a normal `https://strudel.cc/#...` URL.
+- **Organisers console (keep this to yourself):**
+  `https://<you>.github.io/<repo>/organisers.html` - it isn't linked from anywhere.
+
+## Organiser console (`organisers.html`)
+
+Open it and:
+
+1. **Connect** - paste a GitHub **fine-grained Personal Access Token** with
+   *Contents: Read and write* on this repo. It's stored in your browser only
+   (localStorage), never committed. "Forget" clears it.
+2. **Submit slides** - pick a PDF; it's uploaded as `slides.pdf` and the main page's
+   **Slides** link points at it.
+3. **Warm-up patterns** - title + Strudel code for each warm-up; reorder (↑/↓),
+   delete, or add as many as you want, then **Save**.
+4. **Oversee jams** - **Scan rooms** lists every jam that has people in it; open one
+   to watch the visuals, run the synced code, and edit alongside the group. You join
+   **invisibly** (with the `ORGANISER_NAME` from `config.js`), so you never use one of
+   the 5 seats and the router's counter ignores you. *(Flok syncs code, not audio -
+   press `Ctrl/Cmd+Enter` inside the embed to hear it.)*
+
+Published changes go live for everyone within ~1 minute (GitHub Pages cache).
 
 ---
 
@@ -113,5 +147,9 @@ extension, I can run this check for you.)
 
 ## Changing the music later
 
-Everything lives in `config.js` - edit `PANES` and `STRUDEL_PATTERNS`, commit,
-done. Or use `generator.html` to mint a one-off link without touching anything.
+- **Warm-up patterns + slides:** use the **organiser console** - no file editing.
+- **Jam starter code / visuals:** edit `PANES` (the Strudel+Hydra panes a new room
+  opens with) and `HYDRA_SKETCHES` (the rotating gallery visuals) in `config.js`,
+  then commit. `STRUDEL_PATTERNS` in `config.js` is only the fallback used if
+  `data.json` can't be fetched.
+- **One-off link:** `generator.html` mints a standalone `strudel.cc` link.

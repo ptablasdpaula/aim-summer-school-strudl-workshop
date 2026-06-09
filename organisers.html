@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organisers console</title>
+<script src="config.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:2rem 1.2rem 5rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background:#0e0e12; color:#e8e8ef;
+    background-image: radial-gradient(circle at 50% -10%, #1d1d2e 0%, #0e0e12 55%); }
+  .wrap { max-width: 64rem; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin:.2rem 0; letter-spacing:-.02em; }
+  .sub { color:#a9a9c2; margin-top:.2rem; font-size:.9rem; }
+  h2 { font-size:1.05rem; margin:.2rem 0 .8rem; color:#cfcfe6; }
+  a { color:#9b8bff; }
+  .panel { background:#16161f; border:1px solid #26263a; border-radius:14px;
+    padding:1.1rem 1.1rem 1.2rem; margin-top:1.4rem; }
+  label { display:block; margin:.7rem 0 .35rem; color:#cfcfe6; font-size:.85rem; }
+  input[type=text], input[type=password], textarea {
+    width:100%; background:#0c0c13; color:#bdbdf0; border:1px solid #2a2a40;
+    border-radius:9px; padding:.6rem .7rem; font:inherit; font-size:.82rem; line-height:1.5; }
+  textarea { min-height:5.5rem; resize:vertical; }
+  .row { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+  button.btn, a.btn { display:inline-flex; align-items:center; gap:.4rem; cursor:pointer;
+    font:inherit; font-size:.82rem; text-decoration:none; padding:.5rem .85rem; border-radius:9px;
+    border:1px solid #3a3a5c; background:#23233a; color:#e8e8ef; }
+  button.btn.primary { background:#7c5cff; border-color:#7c5cff; color:#fff; font-weight:600; }
+  button.btn.danger { border-color:#5c2a3a; color:#ffb4c4; }
+  button.btn:hover, a.btn:hover { filter:brightness(1.15); }
+  button.btn:disabled { opacity:.45; cursor:not-allowed; filter:none; }
+  .pat { border:1px solid #26263a; border-radius:11px; padding:.8rem; margin-bottom:.7rem; background:#12121b; }
+  .pat .hdr { display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; }
+  .pat .hdr .num { color:#9b8bff; font-weight:600; min-width:2.2rem; }
+  .pat .iconbtn { padding:.3rem .55rem; }
+  .status { margin-top:.7rem; font-size:.82rem; min-height:1.2em; }
+  .status.ok { color:#7fe0a4; }
+  .status.err { color:#ff9ab0; white-space:pre-wrap; word-break:break-word; }
+  .muted { color:#7d7d99; font-size:.78rem; }
+  .jamgrid { display:grid; gap:.7rem; grid-template-columns:repeat(auto-fill,minmax(11rem,1fr)); margin-top:.4rem; }
+  .jamcard { border:1px solid #26263a; border-radius:11px; padding:.8rem; background:#12121b; }
+  .jamcard h3 { margin:0 0 .3rem; font-size:.95rem; color:#fff; }
+  .jamcard .occ { font-size:.8rem; color:#a9a9c2; margin-bottom:.55rem; }
+  .frameWrap { margin-top:1rem; }
+  iframe.jamframe { width:100%; height:78vh; border:1px solid #26263a; border-radius:12px; background:#000; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Organisers console</h1>
+  <p class="sub">Private control panel for the workshop. Participants never see this page.
+     Changes publish to the live site (may take up to ~1 min to appear).</p>
+
+  <!-- ============ GitHub token ============ -->
+  <div class="panel">
+    <h2>1 &middot; Connect</h2>
+    <p class="muted">Paste a GitHub <strong>fine-grained Personal Access Token</strong> with
+       <em>Contents: Read and write</em> on
+       <code>ptablasdpaula/aim-summer-school-strudl-workshop</code>.
+       It stays in this browser only (localStorage) and is never committed.</p>
+    <label for="token">GitHub token</label>
+    <div class="row">
+      <input type="password" id="token" placeholder="github_pat_..." autocomplete="off" style="flex:1 1 18rem">
+      <button class="btn" id="saveToken">Save</button>
+      <button class="btn" id="forgetToken">Forget</button>
+    </div>
+    <div class="status" id="tokenStatus"></div>
+  </div>
+
+  <!-- ============ Slides ============ -->
+  <div class="panel">
+    <h2>2 &middot; Submit slides</h2>
+    <p class="muted">Upload the workshop slides as a single PDF. It becomes the
+       "Slides" link on the main page.</p>
+    <div class="row">
+      <input type="file" id="pdf" accept="application/pdf">
+      <button class="btn primary" id="uploadSlides">Upload PDF</button>
+      <a class="btn" id="viewSlides" target="_blank" rel="noopener" style="display:none">View current</a>
+    </div>
+    <div class="status" id="slidesStatus"></div>
+  </div>
+
+  <!-- ============ Warm-up patterns ============ -->
+  <div class="panel">
+    <h2>3 &middot; Warm-up patterns</h2>
+    <p class="muted">Title + Strudel code for each warm-up. Reorder, delete, or add as
+       many as you like. "Save" publishes them to the main page.</p>
+    <div id="patterns"></div>
+    <div class="row" style="margin-top:.6rem">
+      <button class="btn" id="addPattern">+ Add pattern</button>
+      <button class="btn primary" id="savePatterns">Save patterns</button>
+    </div>
+    <div class="status" id="patternsStatus"></div>
+  </div>
+
+  <!-- ============ Oversee jams ============ -->
+  <div class="panel">
+    <h2>4 &middot; Oversee jams</h2>
+    <p class="muted">Live rooms with people in them. Open one to watch the visuals, run the
+       synced code, and edit alongside the group. You join invisibly &mdash; you don't take
+       up one of the 5 seats and the counter ignores you. (Flok shares code, not audio:
+       press <code>Ctrl/Cmd+Enter</code> inside to hear it.)</p>
+    <div class="row">
+      <button class="btn" id="scanJams">Scan rooms</button>
+      <span class="muted" id="scanStatus"></span>
+    </div>
+    <div class="jamgrid" id="jamgrid"></div>
+    <div class="frameWrap" id="frameWrap"></div>
+  </div>
+
+  <p class="sub" style="margin-top:1.6rem"><a href="index.html">View main page &rarr;</a>
+     &nbsp;&middot;&nbsp; <a href="generator.html">Strudel link maker</a></p>
+</div>
+
+<script type="module">
+  import { Y, WebsocketProvider } from './vendor-yjs.js';
+  const W = window.WORKSHOP;
+  const G = W.GITHUB;
+  const $ = (id) => document.getElementById(id);
+
+  /* ---------------- token ---------------- */
+  const TOKEN_KEY = "gh_token";
+  const getToken = () => localStorage.getItem(TOKEN_KEY) || "";
+  function setTokenStatus() {
+    const t = getToken();
+    $("token").value = t;
+    $("tokenStatus").textContent = t ? "Token saved in this browser." : "No token yet.";
+    $("tokenStatus").className = "status " + (t ? "ok" : "");
+  }
+  $("saveToken").onclick = () => {
+    localStorage.setItem(TOKEN_KEY, $("token").value.trim());
+    setTokenStatus();
+  };
+  $("forgetToken").onclick = () => { localStorage.removeItem(TOKEN_KEY); setTokenStatus(); };
+  setTokenStatus();
+
+  function requireToken(statusEl) {
+    if (getToken()) return true;
+    setStatus(statusEl, "Paste and save a GitHub token first (section 1).", true);
+    return false;
+  }
+  function setStatus(el, msg, isErr) {
+    el.textContent = msg;
+    el.className = "status " + (isErr ? "err" : "ok");
+  }
+
+  /* ---------------- GitHub contents API ---------------- */
+  function ghHeaders() {
+    return {
+      "Authorization": "Bearer " + getToken(),
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
+  }
+  const apiUrl = (path) =>
+    `https://api.github.com/repos/${G.owner}/${G.repo}/contents/${path}`;
+
+  async function ghGet(path) {
+    const r = await fetch(apiUrl(path) + "?ref=" + G.branch + "&t=" + Date.now(),
+      { headers: ghHeaders(), cache: "no-store" });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error("GET " + path + " -> " + r.status + "\n" + (await r.text()));
+    return r.json();
+  }
+  async function ghPut(path, base64Content, message) {
+    const existing = await ghGet(path);
+    const body = { message, content: base64Content, branch: G.branch };
+    if (existing && existing.sha) body.sha = existing.sha;
+    const r = await fetch(apiUrl(path), {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) throw new Error("PUT " + path + " -> " + r.status + "\n" + (await r.text()));
+    return r.json();
+  }
+  const b64utf8 = (str) => btoa(unescape(encodeURIComponent(str)));
+
+  /* ---------------- shared data.json ---------------- */
+  // Local working copy of the published data; the editor edits this and we
+  // commit the whole object so slides + patterns stay consistent.
+  let data = { slides: null, patterns: [] };
+
+  async function loadData() {
+    try {
+      const r = await fetch(W.DATA_PATH + "?t=" + Date.now(), { cache: "no-store" });
+      if (r.ok) data = await r.json();
+    } catch (e) { /* fall through to defaults */ }
+    if (!data || typeof data !== "object") data = { slides: null, patterns: [] };
+    if (!Array.isArray(data.patterns) || !data.patterns.length)
+      data.patterns = W.STRUDEL_PATTERNS.map((p) => ({ title: p.title, code: p.code }));
+    renderPatterns();
+    renderSlides();
+  }
+  async function commitData(message, statusEl) {
+    await ghPut(G.dataPath, b64utf8(JSON.stringify(data, null, 2) + "\n"), message);
+  }
+
+  /* ---------------- slides ---------------- */
+  function renderSlides() {
+    const v = $("viewSlides");
+    if (data.slides) { v.style.display = ""; v.href = data.slides + "?t=" + Date.now(); }
+    else v.style.display = "none";
+  }
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result).split(",")[1]);
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+  $("uploadSlides").onclick = async () => {
+    const st = $("slidesStatus");
+    if (!requireToken(st)) return;
+    const file = $("pdf").files[0];
+    if (!file) { setStatus(st, "Choose a PDF first.", true); return; }
+    const btn = $("uploadSlides"); btn.disabled = true;
+    try {
+      setStatus(st, "Uploading PDF...", false);
+      await ghPut(G.slidesPath, await fileToBase64(file), "Update slides PDF");
+      data.slides = G.slidesPath;
+      await commitData("Point slides link at uploaded PDF", st);
+      renderSlides();
+      setStatus(st, "Slides published. The main page's Slides link is live (give it ~1 min).", false);
+    } catch (e) {
+      setStatus(st, "Upload failed:\n" + e.message, true);
+    } finally { btn.disabled = false; }
+  };
+
+  /* ---------------- patterns editor ---------------- */
+  function renderPatterns() {
+    const box = $("patterns");
+    box.innerHTML = "";
+    data.patterns.forEach((p, i) => {
+      const wrap = document.createElement("div");
+      wrap.className = "pat";
+
+      const hdr = document.createElement("div");
+      hdr.className = "hdr";
+      const num = document.createElement("span");
+      num.className = "num"; num.textContent = "#" + (i + 1);
+      const title = document.createElement("input");
+      title.type = "text"; title.value = p.title || ""; title.placeholder = "Title";
+      title.style.flex = "1 1 auto";
+      title.oninput = () => { p.title = title.value; };
+
+      const up = iconBtn("↑", i === 0, () => move(i, -1));
+      const down = iconBtn("↓", i === data.patterns.length - 1, () => move(i, 1));
+      const del = iconBtn("✕", false, () => { data.patterns.splice(i, 1); renderPatterns(); });
+      del.classList.add("danger");
+
+      hdr.append(num, title, up, down, del);
+
+      const code = document.createElement("textarea");
+      code.value = p.code || ""; code.spellcheck = false; code.placeholder = "Strudel code";
+      code.oninput = () => { p.code = code.value; };
+
+      wrap.append(hdr, code);
+      box.appendChild(wrap);
+    });
+  }
+  function iconBtn(label, disabled, onclick) {
+    const b = document.createElement("button");
+    b.className = "btn iconbtn"; b.textContent = label; b.disabled = disabled; b.onclick = onclick;
+    return b;
+  }
+  function move(i, d) {
+    const j = i + d;
+    if (j < 0 || j >= data.patterns.length) return;
+    const t = data.patterns[i]; data.patterns[i] = data.patterns[j]; data.patterns[j] = t;
+    renderPatterns();
+  }
+  $("addPattern").onclick = () => {
+    data.patterns.push({ title: "New pattern", code: 'sound("bd hh sd hh")' });
+    renderPatterns();
+  };
+  $("savePatterns").onclick = async () => {
+    const st = $("patternsStatus");
+    if (!requireToken(st)) return;
+    const btn = $("savePatterns"); btn.disabled = true;
+    try {
+      setStatus(st, "Publishing patterns...", false);
+      await commitData("Update warm-up patterns", st);
+      setStatus(st, "Patterns published (live on the main page in ~1 min).", false);
+    } catch (e) {
+      setStatus(st, "Save failed:\n" + e.message, true);
+    } finally { btn.disabled = false; }
+  };
+
+  /* ---------------- oversee jams ---------------- */
+  // Read-only presence count for one room (same approach as join.html).
+  function countRoom(room, timeoutMs) {
+    return new Promise((resolve) => {
+      let settled = false, provider = null, doc = null;
+      const finish = () => {
+        if (settled) return; settled = true;
+        let n = 0;
+        try {
+          provider.awareness.getStates().forEach((st, id) => {
+            if (id !== doc.clientID && st && st.user && st.user.name !== W.ORGANISER_NAME) n++;
+          });
+        } catch (e) {}
+        try { provider.disconnect(); } catch (e) {}
+        try { provider.destroy(); } catch (e) {}
+        try { doc.destroy(); } catch (e) {}
+        resolve(n);
+      };
+      try {
+        doc = new Y.Doc();
+        provider = new WebsocketProvider(W.wsDocUrl(), room, doc, { connect: true, disableBc: true });
+        provider.awareness.setLocalState(null);
+        provider.on("sync", () => setTimeout(finish, 300));
+      } catch (e) { resolve(0); return; }
+      setTimeout(finish, timeoutMs);
+    });
+  }
+  function openJam(i) {
+    const room = W.SESSION_PREFIX + i;
+    const url = W.flokLink(room, i, W.ORGANISER_NAME);
+    const wrap = $("frameWrap");
+    wrap.innerHTML = "";
+    const bar = document.createElement("div");
+    bar.className = "row"; bar.style.marginBottom = ".5rem";
+    const lbl = document.createElement("span");
+    lbl.className = "muted"; lbl.textContent = "Watching jam #" + (i + 1) + " (you're invisible to the seat count).";
+    const ext = document.createElement("a");
+    ext.className = "btn"; ext.href = url; ext.target = "_blank"; ext.rel = "noopener"; ext.textContent = "Open in new tab";
+    bar.append(lbl, ext);
+    const frame = document.createElement("iframe");
+    frame.className = "jamframe"; frame.src = url;
+    frame.allow = "autoplay; microphone; camera; midi";
+    wrap.append(bar, frame);
+    wrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  $("scanJams").onclick = async () => {
+    const st = $("scanStatus"), grid = $("jamgrid");
+    $("scanJams").disabled = true;
+    st.textContent = "Scanning " + W.MAX_ROOMS + " rooms...";
+    grid.innerHTML = "";
+    try {
+      const rooms = [];
+      for (let i = 0; i < W.MAX_ROOMS; i++) rooms.push(W.SESSION_PREFIX + i);
+      const counts = await Promise.all(rooms.map((r) => countRoom(r, W.PROBE_MS)));
+      const open = counts.map((c, i) => ({ c, i })).filter((x) => x.c > 0);
+      st.textContent = open.length ? (open.length + " active jam(s).") : "No active jams right now.";
+      open.forEach(({ c, i }) => {
+        const card = document.createElement("div");
+        card.className = "jamcard";
+        const h = document.createElement("h3"); h.textContent = "Jam #" + (i + 1);
+        const occ = document.createElement("div");
+        occ.className = "occ"; occ.textContent = c + " / " + W.MAX_PER_SESSION + " seats";
+        const btn = document.createElement("button");
+        btn.className = "btn primary"; btn.textContent = "Open"; btn.onclick = () => openJam(i);
+        card.append(h, occ, btn);
+        grid.appendChild(card);
+      });
+    } catch (e) {
+      st.textContent = "Scan failed: " + e.message;
+    } finally { $("scanJams").disabled = false; }
+  };
+
+  /* ---------------- boot ---------------- */
+  loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "slides": null,
+  "patterns": [
+    {
+      "title": "First beat",
+      "code": "// drums - Ctrl+Enter to play, Ctrl+. to stop\nsound(\"bd hh sd hh\")"
+    },
+    {
+      "title": "Wobble bass",
+      "code": "// a wobbly bassline\nnote(\"c2 eb2 g2 bb2\").sound(\"sawtooth\").lpf(sine.range(300,1200).slow(4))"
+    },
+    {
+      "title": "Chords + arp",
+      "code": "// chords + a little arpeggio\nstack(\n  n(\"0 2 4\").scale(\"C:minor\").sound(\"piano\").slow(2).room(.4),\n  n(\"0 2 4 6 7 6 4 2\").scale(\"C:minor\").sound(\"triangle\").delay(.3)\n)"
+    },
+    {
+      "title": "Full groove",
+      "code": "// a whole little track - change any number and re-run\nsetcpm(120/4)\nstack(\n  sound(\"bd*2 ~ sd ~\").bank(\"RolandTR909\"),\n  sound(\"hh*8\").gain(saw.range(.3,.8).fast(2)),\n  note(\"c2 ~ c2 g1\").sound(\"sawtooth\").lpf(700),\n  n(\"0 2 4 6\").scale(\"C:minor\").sound(\"piano\").room(.5).gain(.6)\n)"
+    }
+  ]
+}
