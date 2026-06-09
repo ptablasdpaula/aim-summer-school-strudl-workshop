@@ -19,7 +19,7 @@
   .sub { color:#a9a9c2; margin-top:.2rem; }
   h2 { font-size:1.1rem; margin:2.4rem 0 1rem; color:#cfcfe6;
        border-bottom:1px solid #26263a; padding-bottom:.5rem; }
-  .toprow { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-top:1.2rem; }
+  .toprow { margin-top:1.4rem; }
   .grid { display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(15rem,1fr)); }
   .card { background:#16161f; border:1px solid #26263a; border-radius:14px; padding:1rem 1rem 1.1rem; }
   .card h3 { margin:.1rem 0 .6rem; font-size:1rem; color:#fff; }
@@ -33,18 +33,23 @@
     background:#23233a; color:#e8e8ef;
   }
   a.btn.play { background:#7c5cff; border-color:#7c5cff; color:#fff; font-weight:600; }
-  a.btn.slides { background:#23233a; border-color:#3a3a5c; }
   button.btn:hover, a.btn:hover { filter:brightness(1.15); }
-  .jam {
-    margin-top:1rem; background:linear-gradient(135deg,#7c5cff,#4a8cff);
-    border-radius:16px; padding:1.6rem; display:flex; flex-wrap:wrap;
-    align-items:center; justify-content:space-between; gap:1rem;
+  /* Shared big banner used by both Slides and Join the jam. */
+  .banner {
+    margin-top:1rem; border-radius:16px; padding:1.6rem; display:flex;
+    flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem;
+    text-decoration:none;
   }
-  .jam h3 { margin:0; font-size:1.25rem; color:#fff; }
-  a.join {
-    background:#fff; color:#3322aa; font-weight:700; text-decoration:none;
-    padding:.85rem 1.4rem; border-radius:11px; white-space:nowrap; font-size:1rem;
+  .banner:hover { filter:brightness(1.08); }
+  .banner h3 { margin:0; font-size:1.25rem; color:#fff; }
+  .banner .pill {
+    background:#fff; font-weight:700; padding:.85rem 1.4rem;
+    border-radius:11px; white-space:nowrap; font-size:1rem;
   }
+  .jam { background:linear-gradient(135deg,#7c5cff,#4a8cff); }      /* purple -> blue */
+  .jam .pill { color:#3322aa; }
+  .slides-banner { background:linear-gradient(135deg,#4a8cff,#7c5cff); }  /* blue -> purple (inverted) */
+  .slides-banner .pill { color:#1f3a8a; }
   code.inline { color:#9b8bff; }
 </style>
 </head>
@@ -60,9 +65,9 @@
      <code class="inline">Ctrl/Cmd + .</code> to stop. Edit any number and re-run.</p>
   <div class="grid" id="patterns"></div>
 
-  <div class="jam">
-    <h3>Together: join the live jam!</h3>
-    <a class="join" href="join.html">Join &rarr;</a>
+  <div class="banner jam">
+    <h3>Join the Jam!</h3>
+    <a class="pill" href="join.html">Join &rarr;</a>
   </div>
 </div>
 
@@ -78,11 +83,11 @@
     top.innerHTML = "";
     if (data && data.slides) {
       var slides = document.createElement("a");
-      slides.className = "btn slides";
+      slides.className = "banner slides-banner";
       slides.href = data.slides;
       slides.target = "_blank";
       slides.rel = "noopener";
-      slides.textContent = "Slides (PDF)";
+      slides.innerHTML = '<h3>Slides</h3><span class="pill">Open &rarr;</span>';
       top.appendChild(slides);
     }
 
