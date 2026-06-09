@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live-coding workshop</title>
 <script src="config.js"></script>
+<script src="vendor-hydra.js"></script>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; }
@@ -14,7 +15,12 @@
     background:#0e0e12; color:#e8e8ef;
     background-image: radial-gradient(circle at 50% -10%, #1d1d2e 0%, #0e0e12 55%);
   }
-  .wrap { max-width: 60rem; margin: 0 auto; }
+  /* Live Hydra visuals behind everything, with a scrim so text stays readable. */
+  #bg { position:fixed; inset:0; width:100vw; height:100vh; z-index:-2;
+        pointer-events:none; opacity:.55; }
+  #bgscrim { position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background: radial-gradient(circle at 50% 30%, rgba(14,14,18,.45) 0%, rgba(14,14,18,.72) 70%, rgba(14,14,18,.9) 100%); }
+  .wrap { max-width: 60rem; margin: 0 auto; position:relative; z-index:1; }
   h1 { font-size: 2rem; margin:.2rem 0; letter-spacing:-.02em; }
   .sub { color:#a9a9c2; margin-top:.2rem; }
   h2 { font-size:1.1rem; margin:2.4rem 0 1rem; color:#cfcfe6;
@@ -54,6 +60,8 @@
 </style>
 </head>
 <body>
+<canvas id="bg"></canvas>
+<div id="bgscrim"></div>
 <div class="wrap">
   <h1>Summer School Live-Coding Workshop!!!</h1>
   <p class="sub" id="tagline"></p>
@@ -86,7 +94,7 @@
   document.getElementById("tagline").textContent =
     TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
 
-  function render(data) {
+  function renderHub(data) {
     var patterns = (data && data.patterns && data.patterns.length)
       ? data.patterns : W.STRUDEL_PATTERNS;
 
@@ -129,8 +137,41 @@
   // to the defaults baked into config.js if it can't be fetched.
   fetch(W.DATA_PATH + "?t=" + Date.now(), { cache: "no-store" })
     .then(function (r) { return r.ok ? r.json() : null; })
-    .then(render)
-    .catch(function () { render(null); });
+    .then(renderHub)
+    .catch(function () { renderHub(null); });
+
+  // Live Hydra background: run a random gallery sketch on the #bg canvas.
+  // Uses makeGlobal so the gallery code (osc/voronoi/o0/render/...) just works.
+  // Gracefully no-ops if Hydra is unavailable or the user prefers reduced motion.
+  (function startBackground() {
+    var canvas = document.getElementById("bg");
+    if (!window.Hydra || !canvas) return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    try {
+      var hydra = new Hydra({
+        canvas: canvas, detectAudio: false, makeGlobal: true, enableStreamCapture: false,
+        width: window.innerWidth, height: window.innerHeight,
+      });
+      // Exclude sketches that pull from a webcam/image/etc (they'd prompt for
+      // camera access behind the page); they're still used for jam rooms.
+      var sketches = ((W && W.HYDRA_SKETCHES) || []).filter(function (s) {
+        return s.indexOf("init") === -1;
+      });
+      var code = sketches.length
+        ? sketches[Math.floor(Math.random() * sketches.length)]
+        : "osc(10,0.1,0.9).rotate(0.1).out()";
+      (0, eval)(code);
+      var t;
+      window.addEventListener("resize", function () {
+        clearTimeout(t);
+        t = setTimeout(function () {
+          if (hydra && hydra.setResolution) hydra.setResolution(window.innerWidth, window.innerHeight);
+        }, 200);
+      });
+    } catch (e) {
+      canvas.style.display = "none"; // fall back to the plain gradient
+    }
+  })();
 </script>
 </body>
 </html>
