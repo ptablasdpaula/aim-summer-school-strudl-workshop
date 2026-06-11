@@ -2,16 +2,16 @@
   "slides": "slides.pdf",
   "patterns": [
     {
-      "title": "First beat",
-      "code": "// drums - Ctrl+Enter to play, Ctrl+. to stop\nsound(\"bd hh sd hh\")"
+      "title": "Intro",
+      "code": "// Build a pattern unit!\ns(\"bd hh\")\n// note(\"c3 eb3\") or note(\"48 51\")\n\n// Use < > - change the cycle in time\n// s(\"<bd sd hh>\") // one sample per cycle, alternating\n\n// Use [ ] - change rhythm\n// s(\"bd [sd sd] hh\") // [sd sd] = two samples squeeze in one step\n\n// Use , in [ ] - layer\n// Polyrhythms:\n// s(\"[bd bd bd, hh hh hh hh]\") // 3 against 4\n\n// Chords:\n// note(\"<[c3,eb3,g3] [f3,a3,c4]>\")\n\n\n// Drum sample names:\n// bd = kickdrum\n// sd = snare drum\n// rim = rimshot\n// hh = hihat\n// oh = open hihat\n// lt = low tom\n// mt = middle tom\n// ht = high tom\n// rd = ride cymbal\n// cr = crash cymbal"
     },
     {
-      "title": "Wobble bass",
-      "code": "// a wobbly bassline\nnote(\"c2 eb2 g2 bb2\").sound(\"sawtooth\").lpf(sine.range(300,1200).slow(4))"
+      "title": "Transformation",
+      "code": "$: s(\"bd bd\")\n // s(\"<bd [bd ~ hh]> hh\")\n .hpf(100)\n .delay(1)\n .room(1)\n  \n$: n(\"0 3 6 <5 6>\")\n .scale(\"C:minor\")\n//  .sound(\"<clavisynth piano>\")\n//  .velocity(0.9)\n//  .fast(2)\n//  .jux(rev)\n\n// $: s(\"c2 <c3 eb3>\")\n//   .jux(fast(4))\n//   .sound(\"darbuka\")\n//   .lpf(sine.range(100, 10000))\n//   .gain(4)\n\n// some more instrument sounds:\n// glockenspiel, piano, clavisynth, darbuka, psaltery_pluck, sax"
     },
     {
-      "title": "Chords + arp",
-      "code": "// chords + a little arpeggio\nstack(\n  n(\"0 2 4\").scale(\"C:minor\").sound(\"piano\").slow(2).room(.4),\n  n(\"0 2 4 6 7 6 4 2\").scale(\"C:minor\").sound(\"triangle\").delay(.3)\n)"
+      "title": "Sample-Based Thingies",
+      "code": "samples({ \n  example: 'https://cdn.freesound.org/previews/753/753346_13504080-hq.mp3', \n  bass: 'https://cdn.freesound.org/previews/857/857161_17675683-hq.mp3',\n  bell: 'https://cdn.freesound.org/previews/196/196917_7037-lq.mp3',\n  car: 'https://cdn.freesound.org/previews/335/335554_321967-lq.ogg',\n  chords: 'https://cdn.freesound.org/previews/132/132051_316502-lq.ogg',\n  ambient: 'https://cdn.freesound.org/previews/51/51230_179538-lq.ogg',\n  violin: 'https://cdn.freesound.org/previews/271/271055_4606014-lq.ogg',\n  rain: 'https://cdn.freesound.org/previews/344/344463_2435274-lq.ogg',\n  bird: 'https://cdn.freesound.org/previews/350/350753_4119059-lq.ogg',\n  playground: 'https://cdn.freesound.org/previews/85/85249_1328136-lq.ogg',\n})\n\nstack(\ns(\"example\")\n// .velocity(0.6) // Controls intensity (0-1).\n// .clip(1) // Changes duration (seconds), keeps start. Repeats if shorter or cuts at the end if longer.\n// .chop(50) // Splits each sample into the given number of parts.\n// .rev() // Reverses the order of the chops (slices).\n// .begin(\"<0 .2 .4 .75>\") // Where to start. Between 0-1, where 1 is the full sample length.\n// .speed(\"<1 2 4 3 -3>\") // Changes playback speed and pitch of the sample.\n// .loopAt(2) // Fits the sample into a loop by adjusting speed.\n// .fit() // Fits the sample into the loop timing.\n// .room(0.7) // Sets the amount of reverb (0-1).\n// ,\n\n// s(\"[example bell]\")\n//   .clip(0.9)\n//   .room(\"<0.1:1 0.4:4>\"),\n\n\n\n// note(\"a3 [c#4 e4] a4\")\n// .s(\"bell\"),\n  \n// s(\"hh, [- hh], [hh hh oh]\").fit(),\n\n\n// s(\"car\")\n//   .loopAt(4)\n//   .velocity(slider(0.591)),\n\n// s(\"bass\")\n)\n\n// await initHydra()\n// // licensed with CC BY-NC-SA 4.0 https://creativecommons.org/licenses/by-nc-sa/4.0/\n// // by Zach Krall\n// // http://zachkrall.online/\n\n// osc(10, 0.9, 300)\n// .color(0.9, 0.7, 0.8)\n// .diff(\n// osc(45, 0.3, 100)\n// .color(0.9, 0.9, 0.9)\n// .rotate(0.18)\n// .pixelate(12)\n// .kaleid()\n// )\n// .scrollX(10)\n// .colorama()\n// .luma()\n// .repeatX(4)\n// .repeatY(4)\n// .modulate(\n// osc(10, -0.09, 30)\n// )\n// .scale(2)\n// .out()\n"
     }
   ]
 }
