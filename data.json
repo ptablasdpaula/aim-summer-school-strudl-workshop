@@ -7,7 +7,7 @@
     },
     {
       "title": "Transformation",
-      "code": "$: s(\"bd bd\")\n // s(\"<bd [bd ~ hh]> hh\")\n .hpf(100)\n .delay(1)\n .room(1)\n  \n$: n(\"0 3 6 <5 6>\")\n .scale(\"C:minor\")\n//  .sound(\"<clavisynth piano>\")\n//  .velocity(0.9)\n//  .fast(2)\n//  .jux(rev)\n\n// $: s(\"c2 <c3 eb3>\")\n//   .jux(fast(4))\n//   .sound(\"darbuka\")\n//   .lpf(sine.range(100, 10000))\n//   .gain(4)\n\n// some more instrument sounds:\n// glockenspiel, piano, clavisynth, darbuka, psaltery_pluck, sax"
+      "code": "// Basics #2\n// Chaining transformations in the pattern!\n\n$: s(\"bd bd\")\n // s(\"<bd [bd ~ hh]> hh\")\n .hpf(100)\n .delay(1)\n .room(1)\n  \n$: n(\"0 3 6 <5 6>\")\n .scale(\"C:minor\")\n//  .sound(\"<clavisynth piano>\")\n//  .velocity(0.9)\n//  .fast(2)\n//  .jux(rev)\n\n// $: s(\"c2 <c3 eb3>\")\n//   .jux(fast(4))\n//   .sound(\"darbuka\")\n//   .lpf(sine.range(100, 10000))\n//   .gain(4)\n\n// some more instrument sounds:\n// glockenspiel, piano, clavisynth, darbuka, psaltery_pluck, sax"
     },
     {
       "title": "Sample-based thingies + Freesound",
